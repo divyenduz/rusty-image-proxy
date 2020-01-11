@@ -14,3 +14,12 @@ Usage:
 cargo build
 cargo run
 ```
+
+# Resources
+
+- https://doc.rust-lang.org/book/title-page.html
+- https://actix.rs/docs/getting-started/
+- https://github.com/actix/examples
+- https://github.com/image-rs/image
+- https://github.com/alexcrichton/curl-rust
+- https://timryan.org/2018/07/27/cross-compiling-linux-binaries-from-macos.html
