@@ -1,41 +1,59 @@
+extern crate image as rs_image;
 mod common_utils;
 mod fs_utils;
 mod process_image;
 mod runtime_env;
 
+use std::io::prelude::*;
+
 use std::collections::HashMap;
 
-use actix_files as afs;
-use actix_web::{get, web, App, HttpServer, Result};
-use std::fs;
+use actix_web::{get, web, App, HttpResponse, HttpServer, Result};
 
 #[get("/")]
-async fn index(query: web::Query<HashMap<String, String>>) -> Result<afs::NamedFile> {
+async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse> {
     let link = query.get("link");
     match link {
         Some(link) => {
             let hash = common_utils::calculate_hash(&link);
-
             let folder = String::from("static/");
             fs_utils::ensure_folder(&folder)?;
 
-            // TODO: Support other file types
-            let filename = hash.to_string() + ".png";
-            let file_path = folder + &filename;
-            let output = fs::File::create(&file_path)?;
+            match fs_utils::download(link) {
+                Ok(data) => {
+                    let format = image::guess_format(&data);
+                    let content_type = match format {
+                        Ok(image::ImageFormat::PNG) => "image/png",
+                        Ok(_) => "image/png", // TODO: Handle other types
+                        Err(msg) => panic!("Error: Failed to determine format from bytes, {:?}", msg)
+                    };
+                    println!("content_type: {:?} format: {:?}", content_type, format);
 
-            // TODO: Download to buffer, don't write to file
-            if fs_utils::download(link, output).is_err() {
-                return_error("Error: Failed to download the file to the file system")
-            } else {
-                // TODO: Read from an in-memory buffer, not the file system
-                let img = image::open(&file_path).unwrap();
-                let img = process_image::run(img);
-                // TODO: Serve the buffer without writing to the file system
-                img.save(&file_path)?;
-                Ok(afs::NamedFile::open(&file_path)?)
+                    // TODO: use load_from_memory_with_format variant in future
+                    let image = image::load_from_memory(&data);
+
+                    match image {
+                        Ok(image) => {
+                            let image = process_image::run(image);
+
+                            // TODO: Support other formats
+                            let filename = hash.to_string() + ".png";
+                            let file_path = folder + &filename;
+
+                            image.save(&file_path)?;
+                            let mut file = std::fs::File::open(&file_path)?;
+                            let mut buffer = Vec::new();
+                            file.read_to_end(&mut buffer)?;
+
+                            Ok(HttpResponse::Ok()
+                                .content_type(content_type)
+                                .body(buffer))
+                        }
+                        Err(msg) => panic!("Error: Failed to load image from bytes, {:?}", msg)
+                    }
+                }
+                _ => return_error("Error: Failed to download the file to the file system")
             }
-
         }
         None => {
             return_error("Error: The get parameter link is not provided, please provide an image as a link to process")
@@ -43,13 +61,10 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<afs::NamedF
     }
 }
 
-fn return_error(msg: &str) -> Result<afs::NamedFile> {
-    println!("{:?}", msg);
-    // TODO: This should be a proper error message, once I figure out union types as return type
-    // TODO: Ensure, error.png is present after the build
-    // https://doc.rust-lang.org/std/macro.include_bytes.html (Need to alter the return type)
-    // https://github.com/pyros2097/rust-embed
-    Ok(afs::NamedFile::open("error.png")?)
+fn return_error(msg: &str) -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok()
+        .content_type("text/plain")
+        .body(format!("{:?}", msg)))
 }
 
 #[actix_rt::main]
