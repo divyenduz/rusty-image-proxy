@@ -1,10 +1,12 @@
+mod fs_utils;
 mod process_image;
 mod runtime_env;
+
 use std::collections::HashMap;
 
-use actix_files as fs;
+use actix_files as afs;
 use actix_web::{get, web, App, HttpServer, Result};
-use std::fs::File;
+use std::fs;
 
 use std::io::Write;
 
@@ -19,16 +21,19 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 }
 
 #[get("/")]
-async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFile> {
+async fn index(query: web::Query<HashMap<String, String>>) -> Result<afs::NamedFile> {
     let link = query.get("link");
     match link {
         Some(link) => {
             let hash = calculate_hash(&link);
+
             let folder = String::from("static/");
+            fs_utils::ensure_folder(&folder)?;
+
             // TODO: Support other file types
             let filename = hash.to_string() + ".png";
             let file_path = folder + &filename;
-            let mut output = File::create(&file_path)?;
+            let mut output = fs::File::create(&file_path)?;
             // TODO: Download to buffer, don't write to file
             let mut easy = Easy::new();
             easy.url(link).unwrap();
@@ -40,14 +45,17 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFi
             let img = process_image::run(img);
             // TODO: Serve the buffer without writing to the file system
             img.save(&file_path).unwrap();
-            Ok(fs::NamedFile::open(&file_path)?)
+            Ok(afs::NamedFile::open(&file_path)?)
         }
         None => {
             println!(
                 "Error: The get parameter link is not provided, please provide an image as a link to process"
             );
             // TODO: This should be a proper error message, once I figure out union types as return type
-            Ok(fs::NamedFile::open("error.png")?)
+            // TODO: Ensure, error.png is present after the build
+            // https://doc.rust-lang.org/std/macro.include_bytes.html (Need to alter the return type)
+            // https://github.com/pyros2097/rust-embed
+            Ok(afs::NamedFile::open("error.png")?)
         }
     }
 }
