@@ -11,6 +11,8 @@ use curl::easy::Easy;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+use std::env;
+
 fn calculate_hash<T: Hash>(t: &T) -> u64 {
     let mut s = DefaultHasher::new();
     t.hash(&mut s);
@@ -52,8 +54,17 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFi
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    let mut host = env::var("HOST").unwrap_or("0.0.0.0".to_string());
+    let port = env::var("PORT").unwrap_or("8088".to_string());
+
+    host.push_str(":");
+    host.push_str(&port);
+
+    let bind_to = host; // Better variable name
+
+    println!("Listening on {:?}", bind_to);
     HttpServer::new(|| App::new().service(index))
-        .bind("127.0.0.1:8088")?
+        .bind(bind_to)?
         .run()
         .await
 }
