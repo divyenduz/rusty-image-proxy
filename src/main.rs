@@ -25,16 +25,10 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFi
     match link {
         Some(link) => {
             let hash = calculate_hash(&link);
-            /*
-                TODO:
-                Move files to static (or entirely remove their need)
-                Satan wrote rust because this is valid
-                  let filename = hash.to_string() + ".png";
-                and this isn't
-                  let filename = "static/" + hash.to_string() + ".png";
-            */
+            let folder = String::from("static/");
             let filename = hash.to_string() + ".png";
-            let mut output = File::create(&filename)?;
+            let file_path = folder + &filename;
+            let mut output = File::create(&file_path)?;
             // TODO: Download to buffer, don't write to file
             let mut easy = Easy::new();
             easy.url(link).unwrap();
@@ -42,11 +36,11 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFi
                 .unwrap();
             easy.perform().unwrap();
             // TODO: Read from an in-memory buffer, not the file system
-            let img = image::open(&filename).unwrap();
+            let img = image::open(&file_path).unwrap();
             let img = process_image::run(img);
             // TODO: Serve the buffer without writing to the file system
-            img.save(&filename).unwrap();
-            Ok(fs::NamedFile::open(&filename)?)
+            img.save(&file_path).unwrap();
+            Ok(fs::NamedFile::open(&file_path)?)
         }
         None => {
             println!(
