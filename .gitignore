@@ -1,4 +1,6 @@
 /target
 **/*.rs.bk
 static/
+
 *.png
+!error.png
