@@ -1,4 +1,5 @@
 mod process_image;
+mod runtime_env;
 use std::collections::HashMap;
 
 use actix_files as fs;
@@ -10,8 +11,6 @@ use std::io::Write;
 use curl::easy::Easy;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-
-use std::env;
 
 fn calculate_hash<T: Hash>(t: &T) -> u64 {
     let mut s = DefaultHasher::new();
@@ -26,6 +25,7 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFi
         Some(link) => {
             let hash = calculate_hash(&link);
             let folder = String::from("static/");
+            // TODO: Support other file types
             let filename = hash.to_string() + ".png";
             let file_path = folder + &filename;
             let mut output = File::create(&file_path)?;
@@ -54,15 +54,11 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<fs::NamedFi
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    let mut host = env::var("HOST").unwrap_or("0.0.0.0".to_string());
-    let port = env::var("PORT").unwrap_or("8088".to_string());
+    let bind_to_link = runtime_env::get_bind_to_link();
 
-    host.push_str(":");
-    host.push_str(&port);
-
-    println!("Listening on {:?}", host);
+    println!("Listening on {:?}", bind_to_link);
     HttpServer::new(|| App::new().service(index))
-        .bind(host)?
+        .bind(bind_to_link)?
         .run()
         .await
 }
