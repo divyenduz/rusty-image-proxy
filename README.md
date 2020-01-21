@@ -23,6 +23,7 @@ cargo run
 - https://github.com/image-rs/image
 - https://github.com/alexcrichton/curl-rust
 - https://timryan.org/2018/07/27/cross-compiling-linux-binaries-from-macos.html
+- https://libpixel.com/
 
 # Not Implemented
 
