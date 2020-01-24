@@ -1,8 +1,20 @@
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use std::result::Result;
 
-pub fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    s.finish()
+use curl::easy::Easy;
+
+pub fn download(from: &str) -> Result<std::vec::Vec<u8>, curl::Error> {
+    let mut data = Vec::new();
+    let mut handle = Easy::new();
+    handle.url(from).unwrap();
+    {
+        let mut transfer = handle.transfer();
+        transfer
+            .write_function(|new_data| {
+                data.extend_from_slice(new_data);
+                Ok(new_data.len())
+            })
+            .unwrap();
+        transfer.perform().unwrap();
+    }
+    Ok(data)
 }

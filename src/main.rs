@@ -1,11 +1,9 @@
 extern crate image as rs_image;
 mod common_utils;
-mod fs_utils;
 mod process_image;
 mod runtime_env;
 
-use std::io::prelude::*;
-
+use image::ImageOutputFormat;
 use std::collections::HashMap;
 
 use actix_web::{get, web, App, HttpResponse, HttpServer, Result};
@@ -15,11 +13,7 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpRespons
     let link = query.get("link");
     match link {
         Some(link) => {
-            let hash = common_utils::calculate_hash(&link);
-            let folder = String::from("static/");
-            fs_utils::ensure_folder(&folder)?;
-
-            match fs_utils::download(link) {
+            match common_utils::download(link) {
                 Ok(data) => {
                     let format = image::guess_format(&data);
                     let content_type = match format {
@@ -35,19 +29,21 @@ async fn index(query: web::Query<HashMap<String, String>>) -> Result<HttpRespons
                     match image {
                         Ok(image) => {
                             let image = process_image::run(image);
-
-                            // TODO: Support other formats
-                            let filename = hash.to_string() + ".png";
-                            let file_path = folder + &filename;
-
-                            image.save(&file_path)?;
-                            let mut file = std::fs::File::open(&file_path)?;
                             let mut buffer = Vec::new();
-                            file.read_to_end(&mut buffer)?;
 
-                            Ok(HttpResponse::Ok()
+                            let output_format = match format {
+                                Ok(image::ImageFormat::PNG) => ImageOutputFormat::PNG,
+                                Ok(_) => ImageOutputFormat::PNG, // TODO: Handle other types
+                                Err(msg) => panic!("Error: Failed to determine format from bytes, {:?}", msg)
+                            };
+
+                            let write_op = image.write_to(&mut buffer, output_format);
+                            match write_op {
+                                Ok(_) => Ok(HttpResponse::Ok()
                                 .content_type(content_type)
-                                .body(buffer))
+                                .body(buffer)),
+                                Err(_) => panic!("Error: Failed to write image to bytes")
+                            }
                         }
                         Err(msg) => panic!("Error: Failed to load image from bytes, {:?}", msg)
                     }
