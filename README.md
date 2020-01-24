@@ -25,6 +25,11 @@ cargo run
 - https://timryan.org/2018/07/27/cross-compiling-linux-binaries-from-macos.html
 - https://libpixel.com/
 
+- https://preview.readbot.app/images/america.jpg (121.90 KB)
+- http://localhost:8088/?link=https://preview.readbot.app/images/america.jpg (16.95 KB After capping w=600px + Grayscale)
+- https://preview.readbot.app/images/croatia.png (16.72 KB)
+- http://localhost:8088/?link=https://preview.readbot.app/images/croatia.png (6.45 KB After w=600px + Grayscale)
+
 # Not Implemented
 
 See https://github.com/divyenduz/rusty-image-proxy/issues/3
