@@ -26,9 +26,11 @@ cargo run
 - https://libpixel.com/
 
 - https://preview.readbot.app/images/america.jpg (121.90 KB)
-- http://localhost:8088/?link=https://preview.readbot.app/images/america.jpg (16.95 KB After capping w=600px + Grayscale)
+- http://localhost:8088/?link=https://preview.readbot.app/images/america.jpg (18.09 KB after capping w=600px + grayscale)
 - https://preview.readbot.app/images/croatia.png (16.72 KB)
-- http://localhost:8088/?link=https://preview.readbot.app/images/croatia.png (6.45 KB After w=600px + Grayscale)
+- http://localhost:8088/?link=https://preview.readbot.app/images/croatia.png (6.45 KB after w=600px + grayscale)
+- https://preview.readbot.app/images/india.gif (97.59 KB)
+- http://localhost:8088/?link=https://preview.readbot.app/images/india.gif (10.60 KB after w=600px + grayscale)
 
 # Not Implemented
 

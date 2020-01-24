@@ -30,9 +30,10 @@ pub fn run(img: image::DynamicImage) -> image::DynamicImage {
 
 #[test]
 fn test_run() {
-    let img = image::open("tests/test.png").unwrap();
+    let img = image::open("static/croatia.png").unwrap();
     let img = run(img);
     let dimensions = img.dimensions();
+    println!("{:?}", dimensions);
     assert_eq!(dimensions.0, 600);
     let color = img.color();
     assert_eq!(color, image::ColorType::Gray(8));
