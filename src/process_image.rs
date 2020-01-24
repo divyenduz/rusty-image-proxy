@@ -16,16 +16,13 @@ fn test_scale_down() {
     assert_eq!(dimensions, (600, 396));
 }
 
-pub fn run(img: image::DynamicImage) -> image::DynamicImage {
+pub fn run(mut img: image::DynamicImage) -> image::DynamicImage {
     let dimensions = img.dimensions();
     if dimensions.0 > 600 {
         let dimensions = scale_down(dimensions);
-        let img = img.resize(dimensions.0, dimensions.1, imageops::Nearest);
-        let img = img.grayscale();
-        return img;
+        img = img.resize(dimensions.0, dimensions.1, imageops::Nearest);
     }
-    let img = img.grayscale();
-    return img;
+    img.grayscale()
 }
 
 #[test]
