@@ -1,18 +1,8 @@
 use std::env;
 
 pub fn get_debug() -> bool {
-    match env::var("DEBUG") {
-        // TODO: find better way to convert env string to bool
-        // https://github.com/softprops/envy
-        Ok(val) => {
-            if val.as_str() == "false" {
-                false
-            } else {
-                true
-            }
-        }
-        Err(_) => false,
-    }
+    let debug = env::var("DEBUG").unwrap_or("false".to_string());
+    debug.parse().unwrap_or(false)
 }
 
 pub fn get_bind_to_link() -> String {
