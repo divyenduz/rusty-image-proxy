@@ -1,3 +1,7 @@
+Deprecated in favor of https://imgproxy.net/
+
+This was a learning expriment that served me well and still powers ReadBot.app but I won't have the time to maintain this any further. 
+
 # Introduction
 
 Helper for https://readbot.app
